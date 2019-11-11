@@ -27,6 +27,7 @@
             @click="login()"
             :loading="isActive"
             :disabled="isActive"
+            @keyup.enter="login()"
           >登录</el-button>
         </el-form-item>
       </el-form>
