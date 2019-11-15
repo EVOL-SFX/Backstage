@@ -12,7 +12,10 @@ const routes = [
     children: [
     // 欢迎页面子路由配置
       { path: '/welcome', name: 'welcome', component: () => import('@/views/welcome') },
-      { path: '/article', name: 'article', component: () => import('@/views/article') }
+      { path: '/article', name: 'article', component: () => import('@/views/article') },
+      { path: '/articleadd', name: 'articleadd', component: () => import('@/views/articleadd') },
+      { path: '/articleedit/:aid', name: 'articleedit', component: () => import('@/views/articleedit') },
+      { path: '/account', name: 'account', component: () => import('@/views/account') }
     ] }
 ]
 

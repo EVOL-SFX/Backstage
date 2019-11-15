@@ -7,33 +7,39 @@
       <div class="text item">
         <el-form ref="searchFormRef" :model="searchForm">
           <el-form-item label="文章状态：">
-              <el-radio-group v-model="searchForm.status" @change="getArticleList()">
-                <!-- 文章状态筛选 根据组件的属性来添change-->
-                <!-- el-radio-group给多个单选按钮设置一个组别 -->
-                <!-- v-model：双向绑定，获取被选中的项目  或 设置哪个项目选中 -->
-                <!-- label：用于设置当前单选按钮的value值情况 -->
-                <el-radio label>全部</el-radio>
-                <el-radio :label="0">草稿</el-radio>
-                <!-- 草稿的label为0，因为下面做了为空的判断，所以需要对===0单独修改 -->
-                <el-radio :label="1">待审核</el-radio>
-                <el-radio :label="2">审核通过</el-radio>
-                <el-radio :label="3">审核失败</el-radio>
-              </el-radio-group>
+            <el-radio-group v-model="searchForm.status" @change="getArticleList()">
+              <!-- 文章状态筛选 根据组件的属性来添change-->
+              <!-- el-radio-group给多个单选按钮设置一个组别 -->
+              <!-- v-model：双向绑定，获取被选中的项目  或 设置哪个项目选中 -->
+              <!-- label：用于设置当前单选按钮的value值情况 -->
+              <el-radio label>全部</el-radio>
+              <el-radio :label="0">草稿</el-radio>
+              <!-- 草稿的label为0，因为下面做了为空的判断，所以需要对===0单独修改 -->
+              <el-radio :label="1">待审核</el-radio>
+              <el-radio :label="2">审核通过</el-radio>
+              <el-radio :label="3">审核失败</el-radio>
+            </el-radio-group>
           </el-form-item>
           <el-form-item label="频道列表：">
+            <channel-com @slt="selectHandler"></channel-com>
             <!-- 频道筛选 根据组件的属性来添change -->
-            <el-select v-model="searchForm.channel_id" placeholder="请选择" clearable @change="getArticleList()">
+            <!-- <el-select
+              v-model="searchForm.channel_id"
+              placeholder="请选择"
+              clearable
+              @change="getArticleList()"
+            >
               <el-option
                 v-for="item in channelList"
                 :key="item.id"
                 :label="item.name"
                 :value="item.id"
-              ></el-option>
-              <!-- v-model: 双向绑定，获取选中的项目  或 设置哪个项目选中 -->
-              <!-- clearable：可以清除选中的项目 -->
-              <!-- label  设置每个项目对外提示的名称 -->
-              <!-- value 设置每个项目真实起作用的value值 -->
-            </el-select>
+            ></el-option>-->
+            <!-- v-model: 双向绑定，获取选中的项目  或 设置哪个项目选中 -->
+            <!-- clearable：可以清除选中的项目 -->
+            <!-- label  设置每个项目对外提示的名称 -->
+            <!-- value 设置每个项目真实起作用的value值 -->
+            <!-- </el-select> -->
           </el-form-item>
           <el-form-item label="时间选择：">
             <!-- 通过用监听器来感知条件的变化，所以直接在watch里添加筛选条件 -->
@@ -79,8 +85,14 @@
           </el-table-column>
           <el-table-column label="发布时间" prop="pubdate" width="160"></el-table-column>
           <el-table-column label="操作">
-            <el-button type="primary" size="mini">修改</el-button>
-            <el-button type="danger" size="mini">删除</el-button>
+            <template slot-scope="stData">
+              <el-button
+                type="primary"
+                size="mini"
+                @click="$router.push(`/articleedit/${stData.row.id}`)"
+              >修改</el-button>
+              <el-button type="danger" size="mini" @click="del(stData.row.id)">删除</el-button>
+            </template>
             <!-- size=“mini”设置按钮大小的，相关选项值有  medium / small / mini-->
           </el-table-column>
         </el-table>
@@ -111,14 +123,20 @@
 </template>
 
 <script>
+// 引入频道公共组件
+import ChannelCom from '@/components/channel.vue'
+
 export default {
   name: 'ArticleList',
+  components: {
+    ChannelCom
+  },
   // 请给每个业务组件都设置name属性值，以便通过devtools调试工具进行准确查找
   data () {
     return {
       tot: 0,
       // 频道数据
-      channelList: [],
+      // channelList: [],
       // 搜索表单数据
       searchForm: {
         // 文章状态，0-草稿，1-待审核，2-审核通过，3-审核失败，4-已删除，不传为全部
@@ -135,6 +153,13 @@ export default {
     }
   },
   watch: {
+    // 给searchForm做深度监听
+    searchForm: {
+      handler: function (newV, oldV) {
+        this.getArticleList()
+      },
+      deep: true
+    },
     // 对timetotine成员进行监听
     timetotime (newval) {
       // 把newval的值拆分分别给到 begin_pubdate和end_pubdate 里边
@@ -150,14 +175,17 @@ export default {
         // 现在时间选择器的信息就会自动填充给begin_pubdate 和 end_pubdate了
       }
       // 根据时间变化范围来筛选条件
-      this.getArticleList()
+      // this.getArticleList()
     }
   },
   created () {
-    this.getChannelList()
     this.getArticleList()
   },
   methods: {
+    // 频道组件方法，获得子组件传递过来的频道id并赋予给channel_id成员
+    selectHandler (val) {
+      this.searchForm.channel_id = val
+    },
     // 分页
     // 每页显示条数变化的处理事件
     handleSizeChange (val) {
@@ -174,19 +202,6 @@ export default {
       this.searchForm.page = val
       // 更新目录
       this.getArticleList()
-    },
-    getChannelList () {
-      var pro = this.$http.get('/channels')
-      pro
-        .then(result => {
-          //   console.log(result)
-          if (result.data.message === 'OK') {
-            this.channelList = result.data.data.channels
-          }
-        })
-        .catch(err => {
-          return this.$message.error('获得文章频道错误：' + err)
-        })
     },
     // 获得文章列表信息
     getArticleList () {
@@ -212,6 +227,28 @@ export default {
         .catch(err => {
           return this.$message.error('获得文章列表错误：' + err)
         })
+    },
+    del (id) {
+      this.$confirm('确认要删除该数据么？', '删除', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(() => {
+          let pro = this.$http.delete(`/articles/${id}`)
+          // 服务器返回的数据为大数字，超出计算机的识别范围，需进行转化
+          pro
+            .then(result => {
+              console.log(result)
+              this.$message.success('删除成功！')
+              // 更新删除的文章
+              this.getArticleList()
+            })
+            .catch(err => {
+              return this.$message.error('删除文章错误：' + err)
+            })
+        })
+        .catch(() => {})
     }
   }
 }
