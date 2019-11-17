@@ -58,6 +58,7 @@
 </template>
 
 <script>
+import bus from '@/utils/bus.js'
 export default {
   name: 'Account',
   data () {
@@ -112,6 +113,7 @@ export default {
           pro
             .then(result => {
               if (result.data.message === 'OK') {
+                bus.$emit('upAccountName', this.accountForm.name)
                 this.$message.success('账户修改成功')
               }
             })
@@ -131,6 +133,7 @@ export default {
         .then(result => {
           if (result.data.message === 'OK') {
             this.accountForm.photo = result.data.data.photo
+            bus.$emit('upAccountPhoto', result.data.data.photo)
             // 提示成功
             this.$message.success('更新头像成功')
           }

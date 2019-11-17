@@ -2,14 +2,15 @@
   <el-container>
     <el-aside :width="isCollapse?'65px':'200px'">
       <el-menu
-      background-color="#333744"
-      text-color="#fff"
-      active-text-color="#ffd04b"
-      :collapse="isCollapse"
-      :collapse-transition="false"
-      router>
-      <!--给el-menu配置router的属性，激活路由配置-->
-        <el-menu-item index="1" style="width=200px;">
+        background-color="#333744"
+        text-color="#fff"
+        active-text-color="#ffd04b"
+        :collapse="isCollapse"
+        :collapse-transition="false"
+        router
+      >
+        <!--给el-menu配置router的属性，激活路由配置-->
+        <el-menu-item index="1" style="width:200px;">
           <i class="iconfont icon-msnui-home-block"></i>
           <span slot="title">首页</span>
         </el-menu-item>
@@ -21,7 +22,7 @@
           <el-menu-item index="/articleadd">发布文章</el-menu-item>
           <el-menu-item index="/article">文章列表</el-menu-item>
           <el-menu-item index="2-3">评论列表</el-menu-item>
-          <el-menu-item index="2-4">素材管理</el-menu-item>
+          <el-menu-item index="/material">素材管理</el-menu-item>
         </el-submenu>
         <el-menu-item index="3" :style="{width:isCollapse?'65px':'200px'}">
           <i class="iconfont icon-fensi"></i>
@@ -37,9 +38,9 @@
       <el-header>
         <div id="lt">
           <i
-          :class="isCollapse?'el-icon-s-unfold':'el-icon-s-fold'"
-          style="cursor:pointer;"
-          @click="isCollapse=!isCollapse"
+            :class="isCollapse?'el-icon-s-unfold':'el-icon-s-fold'"
+            style="cursor:pointer;"
+            @click="isCollapse=!isCollapse"
           ></i>
           <span :style="'font-size:20px'">江苏传智播客教育科技股份有限公司</span>
         </div>
@@ -78,20 +79,48 @@
 </template>
 
 <script>
+import bus from '@/utils/bus.js'
 import '@/assets/iconfont1/iconfont.css'
 export default {
   data: function () {
     return {
-      isCollapse: false
+      isCollapse: false,
+      tmpname: '', // 存nm的值
+      tmpphoto: ''
     }
+  },
+  created () {
+    // 1. 对  名称  进行更新
+    bus.$on('upAccountName', nm => {
+      // 更新sessionStorage中name的信息
+      let userinfo = JSON.parse(window.sessionStorage.getItem('userinfo'))
+      userinfo.name = nm
+      window.sessionStorage.setItem('userinfo', JSON.stringify(userinfo))
+      // 更新临时成员tmpname
+      this.tmpname = nm
+    })
+    // 2. 对  名称  进行更新
+    bus.$on('upAccountPhoto', ph => {
+      // 更新sessionStorage中photo的信息
+      let userinfo = JSON.parse(window.sessionStorage.getItem('userinfo'))
+      userinfo.photo = ph
+      window.sessionStorage.setItem('userinfo', JSON.stringify(userinfo))
+      // 更新临时成员tmpphoto
+      this.tmpphoto = ph
+    })
   },
   // 获取sessionStorage内容，并显示
   computed: {
     name () {
-      return JSON.parse(window.sessionStorage.getItem('userinfo')).name
+      // if (this.tmpname) {
+      //   return this.tmpname
+      // } else {
+      //   return JSON.parse(window.sessionStorage.getItem('userinfo')).name
+      // }
+      return this.tmpname || JSON.parse(window.sessionStorage.getItem('userinfo')).name
     },
     photo () {
-      return JSON.parse(window.sessionStorage.getItem('userinfo')).photo
+      return this.tmpphoto || JSON.parse(window.sessionStorage.getItem('userinfo')).photo
     }
   },
   methods: {
@@ -116,9 +145,9 @@ export default {
   height: 100%;
   .el-aside {
     background-color: rgb(50, 55, 69);
-    .iconfont{
-      font-size:18px;
-      margin: 0 6px 0 2.5px ;
+    .iconfont {
+      font-size: 18px;
+      margin: 0 6px 0 2.5px;
     }
   }
   .el-header {

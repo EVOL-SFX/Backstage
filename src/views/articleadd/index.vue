@@ -19,11 +19,18 @@
               <el-radio :label="0">无图</el-radio>
               <el-radio :label="-1">自动</el-radio>
             </el-radio-group>
+            <ul>
+              <li class="uploadbox" v-for="item in covernum" :key="item" @click="showDialog()">
+                <span>点击图标选择图片</span>
+                <img v-if="addForm.cover.images[item-1]" :src="addForm.cover.images[item-1]" alt />
+                <div v-else class="el-icon-picture-outline"></div>
+              </li>
+            </ul>
           </el-form-item>
           <el-form-item label="频道:" prop="channel_id">
             <!-- @slt是给channel-com组件声明的事件，名称为slt，
             selectHandler是事件响应方法，
-            需要在当前组件(父组件)methods中声明好 -->
+            需要在当前组件(父组件)methods中声明好-->
             <channel-com @slt="selectHandler"></channel-com>
           </el-form-item>
           <el-form-item>
@@ -33,6 +40,17 @@
           </el-form-item>
         </el-form>
       </div>
+      <el-dialog title="素材图片" :visible.sync="dialogVisible" width="60%" >
+        <ul>
+          <li class="image-box" v-for="item in imageList" :key="item.id">
+            <img :src="item.url" alt="木有图片" @click="clkImage">
+          </li>
+        </ul>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="imageOK = false">确定</el-button>
+        </span>
+      </el-dialog>
     </el-card>
   </div>
 </template>
@@ -54,18 +72,34 @@ export default {
     // 注册频道独立组件
     ChannelCom
   },
+  computed: {
+    covernum () {
+      // 设计当前图片“选择框的个数”
+      if (this.addForm.cover.type >= 0) {
+        return this.addForm.cover.type
+      }
+      return 0
+    }
+  },
   data () {
     return {
+      imageList: [],
+      querycdt: {
+        collect: false, // 非收藏图片
+        page: 1,
+        per_page: 12
+      },
+      dialogVisible: false,
       channelList: [], // 接收频道列表数据
       addForm: {
         title: '', // 文章标题
         content: '', // 文章内容
         cover: {
-          type: 0, // 封面类型 -1:自动，0-无图，1-1张，3-3张
+          type: 3, // 封面类型 -1:自动，0-无图，1-1张，3-3张
           //   整型的0  切记
           images: []
         },
-        channel_id: '' // 频道
+        channel_id: ''// 频道
       },
       // 表单校验规则
       addFormRules: {
@@ -82,6 +116,10 @@ export default {
         channel_id: [{ required: true, message: '频道必选' }]
       }
     }
+  },
+  created () {
+    // 获得供选取的素材图片
+    this.getImageList()
   },
   methods: {
     addarticle (flag) {
@@ -109,6 +147,34 @@ export default {
     // val:子组件给传递过来的频道信息
     selectHandler (val) {
       this.addForm.channel_id = val
+    },
+    showDialog () {
+      this.dialogVisible = true
+      // 打开dialog对话框
+    },
+    // 获取素材图片
+    // 获取素材图片列表
+    getImageList () {
+      let pro = this.$http.get('/user/images', { params: this.querycdt })
+      pro
+        .then(result => {
+          if (result.data.message === 'OK') {
+            this.imageList = result.data.data.results
+          }
+        })
+        .catch(err => {
+          return this.$message.error('获得素材图片列表错误:' + err)
+        })
+    },
+    clkImage (evt) {
+      // 把全部项目的选中标志都去除
+      var lis = document.querySelectorAll('.image-box')
+      for (var i = 0; i < lis.length; i++) {
+        lis[i].style.border = ''
+      }
+      // evt：当前事件对象，设置事件不加括号;
+      // evt.target：触发当前事件的dom节点对象（img）
+      evt.target.parentNode.style.border = '3px solid blue'
     }
   }
 }
@@ -120,5 +186,51 @@ export default {
 /*deep：深度作用选择器，使得编译后的效果为：.el-form[data-v-xx] .ql-editor{}*/
 .el-form /deep/ .ql-editor {
   height: 200px;
+}
+// 对话框素材图片列表相关css样式
+.image-box {
+  list-style: none;
+  width: 200px;
+  height: 140px;
+  background-color: #fff;
+  margin: 10px;
+  float: left;
+  border: 1px solid #eee;
+  cursor:pointer;
+  box-sizing:border-box;
+  img {
+    width: 100%;
+    height: 100%;
+  }
+}
+// 文章封面选择框样式
+.uploadbox {
+  list-style: none;
+  width: 200px;
+  height: 200px;
+  margin: 10px;
+  float: left;
+  cursor: pointer;
+  border: 1px solid #eee;
+  span {
+    width: 200px;
+    height: 50px;
+    line-height: 50px;
+    display: block;
+    text-align: center;
+  }
+  div {
+    width: 200px;
+    height: 150px;
+    font-size: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #fff;
+  }
+  img {
+    width: 200px;
+    height: 150px;
+  }
 }
 </style>
