@@ -8,6 +8,7 @@
         :collapse="isCollapse"
         :collapse-transition="false"
         router
+        :default-active="$route.path"
       >
         <!--给el-menu配置router的属性，激活路由配置-->
         <el-menu-item index="1" style="width:200px;">
@@ -21,10 +22,10 @@
           </template>
           <el-menu-item index="/articleadd">发布文章</el-menu-item>
           <el-menu-item index="/article">文章列表</el-menu-item>
-          <el-menu-item index="2-3">评论列表</el-menu-item>
+          <el-menu-item index="/discuss">评论列表</el-menu-item>
           <el-menu-item index="/material">素材管理</el-menu-item>
         </el-submenu>
-        <el-menu-item index="3" :style="{width:isCollapse?'65px':'200px'}">
+        <el-menu-item index="/fans" :style="{width:isCollapse?'65px':'200px'}">
           <i class="iconfont icon-fensi"></i>
           <span slot="title">粉丝管理</span>
         </el-menu-item>
@@ -57,7 +58,7 @@
             </span>
             <!-- 下拉菜单 -->
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item>个人信息</el-dropdown-item>
+              <el-dropdown-item @click.native="account()">个人信息</el-dropdown-item>
               <el-dropdown-item>github地址</el-dropdown-item>
               <el-dropdown-item @click.native="logout()">退出</el-dropdown-item>
               <!-- @click是vue事件绑定操作，
@@ -135,6 +136,9 @@ export default {
           this.$router.push('/login')
         })
         .catch(() => {})
+    },
+    account () {
+      this.$router.push('/account')
     }
   }
 }
